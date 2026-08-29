@@ -1,0 +1,106 @@
+DATA:
+  dataset: refcoco+
+  train_lmdb: datasets/lmdb/refcoco+/train.lmdb
+  train_split: train
+  val_lmdb: datasets/lmdb/refcoco+/val.lmdb
+  val_split: val
+  mask_root: datasets/masks/refcoco+
+TRAIN:
+  # Base Arch
+  clip_pretrain: pretrain/RN50.pt
+  input_size: 416
+  word_len: 17
+  word_dim: 1024
+  ladder_dim: 128
+  nhead: 4
+  multi_stage: 3
+  stride: [2, 1, 2]
+  vis_dim: 512
+  fpn_in: [512, 1024, 1024]
+  fpn_out: [256, 512, 1024]
+  sync_bn: True
+  # Decoder
+  num_layers: 3
+  num_head: 8
+  dim_ffn: 512
+  dropout: 0.2
+  intermediate: False
+  # Training Setting
+  workers: 12  # data loader workers
+  workers_val: 12
+  epochs: 50
+  milestones: [30]
+  start_epoch: 0
+  batch_size: 64  # batch size for training
+  batch_size_val: 64  # batch size for validation during training, memory and speed tradeoff
+  base_lr: 0.00025
+  lr_decay: 0.1
+  lr_multi: 1
+  weight_decay: 0.05
+  max_norm: 0.
+  batchnorm: True
+  lang_fusion_type: multi
+  bilinear: True
+  manual_seed: 0
+  print_freq: 100
+  threshold : 0.5
+  auto_calibrate_thresh: True
+  # Resume & Save
+  exp_name: B_R50
+  output_folder: exp/refcoco+
+  save_freq: 1
+  weight:  # path to initial weight (default: none)
+  resume:  # path to latest checkpoint (default: none)
+  evaluate: True  # evaluate on validation set, extra gpu memory needed and small batch_size_val is recommend
+
+  USE_AFE: True
+  AFE_N: 2
+  AFE_DROP_PATH: 0.1
+  AFE_EXPAND: 4
+  AFE_K: 3
+  AFE_DILATED_MLP: True
+  AFE_GAMMA_INIT: 0.5
+
+
+
+  USE_KD: True
+  USE_EMA_TEACHER: True
+  EMA_MOMENTUM: 0.9995
+  KD_T: 3.0
+  KD_W_LOGIT: 0.06
+  KD_W_FEAT: 0.06
+  KD_W_ATTN: 0.012
+  KD_FEAT_NORM: cosine
+  KD_WARMUP_STEPS: 2600
+  KD_RAMP_STEPS: 17000
+  KD_WEIGHT_MAX: 0.7
+  TEACHER_CHECKPOINT: ""
+  EMA_EVAL_FROM_EPOCH: 8
+
+#  USE_KD: True
+#  USE_EMA_TEACHER: True
+#  EMA_MOMENTUM: 0.999223254683193
+#  KD_T: 3.8399618668655853
+#  KD_W_LOGIT: 0.060650143623946925
+#  KD_W_FEAT: 0.08397744963996276
+#  KD_W_ATTN: 0.02681595405645271
+#  KD_FEAT_NORM: cosine
+#  KD_WARMUP_STEPS: 2349
+#  KD_RAMP_STEPS: 10760
+#  KD_WEIGHT_MAX: 0.9205386785180374
+#  EMA_EVAL_FROM_EPOCH: 8
+#  TEACHER_CHECKPOINT: ""
+
+  # Warmup + Cosine Scheduler
+  warmup_epochs: 3
+  min_lr_ratio: 0.1
+Distributed:
+  dist_url: tcp://localhost:3681
+  dist_backend: 'nccl'
+  multiprocessing_distributed: True
+  world_size: 1
+  rank: 0
+TEST:
+  test_split: val-test
+  test_lmdb: datasets/lmdb/refcoco+/testB.lmdb
+  visualize: False

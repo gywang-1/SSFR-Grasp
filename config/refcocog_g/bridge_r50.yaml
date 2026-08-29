@@ -1,0 +1,83 @@
+DATA:
+  dataset: refcocog_g
+  train_lmdb: datasets/lmdb/refcocog_g/train.lmdb
+  train_split: train
+  val_lmdb: datasets/lmdb/refcocog_g/val.lmdb
+  val_split: val
+  mask_root: datasets/masks/refcocog_g
+TRAIN:
+  # Base Arch
+  clip_pretrain: pretrain/RN50.pt
+  input_size: 416
+  word_len: 22
+  word_dim: 1024
+  ladder_dim: 128
+  nhead: 4
+  multi_stage: 3
+  stride: [2, 1, 2]
+  vis_dim: 512
+  fpn_in: [512, 1024, 1024]
+  fpn_out: [256, 512, 2048]
+  sync_bn: True
+  # Decoder
+  num_layers: 3
+  num_head: 8
+  dim_ffn: 512
+  dropout: 0.2
+  intermediate: False
+  # Training Setting
+  workers: 16  # data loader workers
+  workers_val: 16
+  epochs: 50
+  milestones: [35]
+  start_epoch: 0
+  batch_size: 48  # batch size for training
+  batch_size_val: 48  # batch size for validation during training, memory and speed tradeoff
+  base_lr: 0.00015
+  lr_decay: 0.1
+  lr_multi: 1
+  weight_decay: 0.
+  max_norm: 0.
+  manual_seed: 0
+  print_freq: 100
+  # Resume & Save
+  exp_name: B_R50
+  output_folder: exp/refcocog_g
+  save_freq: 1
+  weight:  # path to initial weight (default: none)
+  resume:  # path to latest checkpoint (default: none)
+  evaluate: True  # evaluate on validation set, extra gpu memory needed and small batch_size_val is recommend
+  # -------------------------------
+  # Knowledge Distillation & EMA (与 RN50 改进一致)
+  # -------------------------------
+  USE_KD: True               # 启用蒸馏
+  USE_EMA_TEACHER: True      # 启用 EMA 教师
+  EMA_MOMENTUM: 0.999        # EMA 动量（与 RN50 配置相同）
+  KD_T: 3.0                  # 蒸馏温度
+  KD_W_LOGIT: 0.45           # logits 蒸馏权重
+  KD_W_FEAT: 0.1             # 特征蒸馏权重
+  KD_W_ATTN: 0.01            # 注意力蒸馏权重（小）
+  KD_FEAT_NORM: l2
+  KD_WARMUP_STEPS: 200
+  KD_RAMP_STEPS: 1500
+  KD_WEIGHT_MAX: 1.0
+  TEACHER_CHECKPOINT: ""     # 若使用外部 teacher，填路径；留空使用 EMA teacher
+
+  # Warmup + Cosine Scheduler
+  warmup_epochs: 3
+  min_lr_ratio: 0.1
+Distributed:
+  dist_url: tcp://localhost:3681
+  dist_backend: 'nccl'
+  multiprocessing_distributed: True
+  world_size: 1
+  rank: 0
+TEST:
+  test_split: val-test
+  test_lmdb: datasets/lmdb/refcocog_g/val.lmdb
+  visualize: False
+  # TTA options（与 RN50 改进一致：多尺度 + flip）
+  tta: True
+  tta_scales: [ 0.9, 1.0, 1.1 ]
+  flip: True
+  # threshold: 0.5  # 若需覆盖 TRAIN.threshold，可在此处设置
