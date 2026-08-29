@@ -9,7 +9,7 @@ from .layers import Projector, FPN, FPN_vit
 from .bridger import Bridger_SA_ViT, Bridger_SA_RN_fwd
 from .decoder import TransformerDecoder
 from .kd import KDLoss, EMATeacher
-from .afe import AFEBlock
+from .SFCR import AFEBlock
 
 
 class BCEDiceLoss(nn.Module):
