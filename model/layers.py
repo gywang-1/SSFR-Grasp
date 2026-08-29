@@ -7,7 +7,7 @@ from torch import Tensor
 from typing import List, Optional
 import model.fusion as fusion
 from einops import rearrange
-from model.GroupCBAMEnhancer import GroupCBAMEnhancer
+from model.GSC import GroupCBAMEnhancer
 
 
 def conv_layer(in_dim, out_dim, kernel_size=1, padding=0, stride=1):
